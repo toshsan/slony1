@@ -6,7 +6,7 @@
  *	Copyright (c) 2003-2004, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: cleanup_thread.c,v 1.13.2.5 2005-01-12 03:15:36 darcyb Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

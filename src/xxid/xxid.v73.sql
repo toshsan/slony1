@@ -6,7 +6,7 @@
 --	Copyright (c) 2003-2004, PostgreSQL Global Development Group
 --	Author: Jan Wieck, Afilias USA INC.
 --
--- $Id: xxid.v73.sql,v 1.2 2004-06-15 23:27:18 wieck Exp $
+-- 
 -- ----------
 
 --

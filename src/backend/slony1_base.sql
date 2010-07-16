@@ -6,7 +6,7 @@
 --	Copyright (c) 2003-2004, PostgreSQL Global Development Group
 --	Author: Jan Wieck, Afilias USA INC.
 --
--- $Id: slony1_base.sql,v 1.13.2.1 2004-08-02 21:53:20 darcyb Exp $
+-- 
 -- ----------------------------------------------------------------------
 
 

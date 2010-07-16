@@ -6,7 +6,7 @@
  *	Copyright (c) 2003-2004, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: runtime_config.c,v 1.19.2.1 2004-09-30 17:45:06 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

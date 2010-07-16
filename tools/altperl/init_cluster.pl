@@ -1,5 +1,5 @@
 #!perl # -*- perl -*-
-# $Id: init_cluster.pl,v 1.4.2.2 2004-10-01 20:43:25 cbbrowne Exp $
+# 
 # Author: Christopher Browne
 # Copyright 2004 Afilias Canada
 my @COST;

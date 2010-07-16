@@ -6,7 +6,7 @@
  *	Copyright (c) 2003-2004, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: slonik.h,v 1.17.2.2 2004-10-08 16:30:13 wieck Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

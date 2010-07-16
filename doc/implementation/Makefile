@@ -4,7 +4,7 @@
 #	Copyright (c) 2003-2004, PostgreSQL Global Development Group
 #	Author: Jan Wieck, Afilias USA INC.
 #
-# $Id: Makefile,v 1.4 2004-03-18 19:32:21 wieck Exp $
+# 
 # ----------
 
 subdir = doc/implementation

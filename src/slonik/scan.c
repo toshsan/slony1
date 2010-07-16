@@ -610,7 +610,7 @@ char *yytext;
  *	Copyright (c) 2003-2004, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: scan.c,v 1.17.2.4 2004-10-14 15:58:21 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 #define YY_NO_UNPUT 1

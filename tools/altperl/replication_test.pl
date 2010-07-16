@@ -1,5 +1,5 @@
 #!perl   # -*- perl -*-
-# $Id: replication_test.pl,v 1.1.2.1 2004-09-30 17:37:28 cbbrowne Exp $
+# 
 # Christopher Browne
 # Copyright 2004
 # Afilias Canada
