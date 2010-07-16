@@ -7,7 +7,7 @@
  *	Copyright (c) 2003-2006, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: remote_listen.c,v 1.21.2.3 2007-02-02 20:22:59 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

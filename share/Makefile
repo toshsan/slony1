@@ -4,7 +4,7 @@
 #	Copyright (c) 2003-2004, PostgreSQL Global Development Group
 #	Author: Jan Wieck, Afilias USA INC.
 #
-#	$Id: Makefile,v 1.3 2005-04-20 13:02:22 cbbrowne Exp $
+#	
 # ----------
 
 slony_subdir = share

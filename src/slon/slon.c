@@ -6,7 +6,7 @@
  *	Copyright (c) 2003-2006, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: slon.c,v 1.52.2.2 2006-01-10 15:38:18 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

@@ -1,5 +1,5 @@
 #!@@PERL@@
-# $Id: slon_watchdog2.pl,v 1.9 2005-02-22 20:50:28 smsimms Exp $
+# 
 # Author: Christopher Browne
 # Copyright 2004 Afilias Canada
 

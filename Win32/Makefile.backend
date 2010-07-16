@@ -1,4 +1,4 @@
-# $Id: Makefile.backend,v 1.1 2005-03-11 20:09:47 cbbrowne Exp $
+# 
 
 MODULES=slony1_funcs
 slony_subdir = src/slony1_funcs

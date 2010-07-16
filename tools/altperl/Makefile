@@ -2,7 +2,7 @@
 # Makefile
 #
 #	Copyright (c) 2003-2004, PostgreSQL Global Development Group
-#       $Id: Makefile,v 1.10.2.1 2005-09-26 15:22:53 cbbrowne Exp $
+#       
 #
 # ----------
 

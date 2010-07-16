@@ -1,5 +1,5 @@
 #!@@PERL@@
-# $Id: slon_watchdog.pl,v 1.11.2.1 2005-07-25 21:37:02 cbbrowne Exp $
+# 
 # Author: Christopher Browne
 # Copyright 2004 Afilias Canada
 

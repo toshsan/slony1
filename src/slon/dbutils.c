@@ -6,7 +6,7 @@
  *	Copyright (c) 2003-2005, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: dbutils.c,v 1.16.2.1 2006-01-06 17:07:47 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

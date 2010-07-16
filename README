@@ -1,6 +1,6 @@
 Slony-I
 ------------------
-$Id: README,v 1.11 2005-04-15 19:33:15 cbbrowne Exp $
+
 
 Slony-I is a "master to multiple slaves" replication system with
 cascading and failover.

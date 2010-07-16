@@ -1,4 +1,4 @@
-<!-- $Id: plainpaths.sgml,v 1.8.2.1 2005-12-09 22:21:59 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="plainpaths"><title> &slony1; Path Communications</title>
 
 <para> &slony1; uses &postgres; DSNs in three contexts to establish

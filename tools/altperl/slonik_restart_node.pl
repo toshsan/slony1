@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: slonik_restart_node.pl,v 1.1 2005-05-31 16:11:05 cbbrowne Exp $
+# 
 # Author: Christopher Browne
 # Copyright 2004 Afilias Canada
 

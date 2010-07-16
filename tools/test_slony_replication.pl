@@ -1,5 +1,5 @@
 #!perl   # -*- perl -*-
-# $Id: test_slony_replication.pl,v 1.3 2005-03-15 16:45:07 cbbrowne Exp $
+# 
 # Christopher Browne
 # Copyright 2004
 # Afilias Canada

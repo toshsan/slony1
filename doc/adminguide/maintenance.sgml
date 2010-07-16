@@ -1,4 +1,4 @@
-<!-- $Id: maintenance.sgml,v 1.15 2005-05-13 21:24:03 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="maintenance"> <title>&slony1; Maintenance</title>
 
 <para>&slony1; actually does a lot of its necessary maintenance

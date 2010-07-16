@@ -1,4 +1,4 @@
-<!-- $Id: listenpaths.sgml,v 1.16.2.1 2006-01-10 17:06:09 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="listenpaths"><title>&slony1; listen paths</title>
 
 <indexterm><primary>listen paths</primary></indexterm>

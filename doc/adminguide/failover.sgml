@@ -1,4 +1,4 @@
-<!-- $Id: failover.sgml,v 1.15.2.1 2005-12-09 22:21:47 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="failover">
 <title>Doing switchover and failover with &slony1;</title>
 <sect2><title>Foreword</title>

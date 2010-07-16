@@ -1,4 +1,4 @@
-<!-- $Id: usingslonik.sgml,v 1.11.2.1 2005-12-09 22:22:04 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="usingslonik"> <title>Using Slonik</title>
 
 <para> It's a bit of a pain writing <application>Slonik</application>

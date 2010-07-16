@@ -1,6 +1,6 @@
 Preliminary Win32 Support
 ------------------------------------
-$Id: README,v 1.1 2005-03-11 20:09:47 cbbrowne Exp $
+
 
 As per the README.compiling documentation, Andreas Pflug has
 contributed Makefiles that may be useful for those that wish to

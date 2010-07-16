@@ -6,7 +6,7 @@
  *	Copyright (c) 2003-2006, PostgreSQL Global Development Group
  *	Author: Darcy Buskermolen
  *
- *	$Id: confoptions.c,v 1.14.2.1 2006-01-06 17:07:47 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

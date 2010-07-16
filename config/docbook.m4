@@ -1,4 +1,4 @@
-# $Id: docbook.m4,v 1.3 2004-12-17 23:20:45 darcyb Exp $
+# 
 
 # SLON_AC_PROG_JADE
 # --------------

@@ -7,7 +7,7 @@
  *	Copyright (c) 2003-2006, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: parser.y,v 1.22.2.3 2006-10-31 22:17:25 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

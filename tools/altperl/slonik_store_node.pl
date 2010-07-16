@@ -1,5 +1,5 @@
 #!@@PERL@@
-# $Id: slonik_store_node.pl,v 1.1 2005-05-31 16:11:05 cbbrowne Exp $
+# 
 # Author: Steve Simms
 # Copyright 2005 PostgreSQL Global Development Group
 

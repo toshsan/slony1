@@ -1,5 +1,5 @@
 #!@@PERL@@
-# $Id: slonik_execute_script.pl,v 1.1.2.1 2007-03-13 15:35:43 cbbrowne Exp $
+# 
 # Author: Christopher Browne
 # Copyright 2004 Afilias Canada
 

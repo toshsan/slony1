@@ -1,5 +1,5 @@
 #!@@PERL@@
-# $Id: slon_start.pl,v 1.14 2005-02-22 17:11:18 smsimms Exp $
+# 
 # Author: Christopher Browne
 # Copyright 2004 Afilias Canada
 

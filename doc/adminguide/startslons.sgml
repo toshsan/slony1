@@ -1,4 +1,4 @@
-<!-- $Id: startslons.sgml,v 1.11.2.1 2005-12-09 22:22:02 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="slonstart"> <title>Slon daemons</title>
 
 <para>The programs that actually perform &slony1; replication are the

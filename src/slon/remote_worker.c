@@ -6,7 +6,7 @@
  *	Copyright (c) 2003-2006, PostgreSQL Global Development Group
  *	Author: Jan Wieck, Afilias USA INC.
  *
- *	$Id: remote_worker.c,v 1.86.2.18 2008-09-09 21:29:55 cbbrowne Exp $
+ *	
  *-------------------------------------------------------------------------
  */
 

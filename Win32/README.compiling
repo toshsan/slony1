@@ -1,4 +1,4 @@
-$Id: README.compiling,v 1.1 2005-03-11 20:09:47 cbbrowne Exp $
+
 
 I created new makefiles for slony_funcs and xxid using the contrib
 infrastructure, which makes them win32 compatible. IMHO the attached

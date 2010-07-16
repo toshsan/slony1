@@ -1,4 +1,4 @@
-<!-- $Id: reshape.sgml,v 1.14.2.1 2005-12-09 22:21:59 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="reshape"> <title>Reshaping a Cluster</title>
 
 <para>If you rearrange the nodes so that they serve different

@@ -1,4 +1,4 @@
-<!-- $Id: cluster.sgml,v 1.10.2.1 2006-01-17 16:14:43 cbbrowne Exp $ -->
+<!--  -->
 <sect1 id="cluster">
 <title>Defining &slony1; Clusters</title>
 <indexterm>
