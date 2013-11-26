@@ -19,7 +19,7 @@
 import gtk
 import gtk.gdk
 import xdot
-import pg
+import psycopg2
 import string
 from os import getenv
 import re
@@ -37,39 +37,52 @@ PGCLUSTER = getenv('PGCLUSTER', 'slony_regress1')
 class MyDotWindow(xdot.DotWindow):
     def mainnodescreen (self):
         INITIALDBSOURCE="dbname=%s host=%s user=%s port=%d" % (PGDATABASE, PGHOST, PGUSER, PGPORT)
-        db=pg.connect(dbname=PGDATABASE, port=PGPORT, user=PGUSER, host=PGHOST)
+        db=psycopg2.connect(INITIALDBSOURCE)
+        cur=db.cursor()
         qnodes = "select no_id, no_active, no_comment, no_failed from \"_%s\".sl_node;" % (PGCLUSTER)
         nodes=""
-        for row in db.query(qnodes).getresult():
-            node=row[0]
-            active=row[1]
-            comment=row[2]
-            failed=row[3]
+        cur.execute(qnodes)
+        for tuple in cur:
+            node=tuple[0]
+            active=tuple[1]
+            comment=tuple[2]
+            failed=tuple[3]
             nodeline = "node%s [ label= \"node%s %s\", URL=\"node%s\" ]\n" % (node, node, comment, node)
             nodes = "%s\n%s\n" % (nodes, nodeline)
         now=datetime.now()
-        metadata = "metadata [shape=record, label=\"DB=(%s,%s,%s,%s) Date=[%s]\"];\n" % (PGDATABASE,PGHOST, PGUSER, PGPORT, now)
-        nodes = "%s\n%s" % (nodes, metadata)
+        metadata = "metadata [label=\"|{ |{ DB Info }| |{ DB| %s }| {| Host | %s |} |{ User | %s }| |{ Port | %s }| |{ Date | %s }| }| \"];\n" % (PGDATABASE,PGHOST, PGUSER, PGPORT, now)
                                                                                      
         subscriptions=""
         qsubs = "select sub_set, sub_provider, sub_receiver, sub_forward, sub_active from \"_%s\".sl_subscribe;" % (PGCLUSTER)
-        for row in db.query(qsubs).getresult():
-            subset=row[0]
-            subprovider=row[1]
-            subreceiver=row[2]
-            subforward=row[3]
-            subactive=row[4]
+        cur.execute(qsubs)
+        for tuple in cur:
+            subset=tuple[0]
+            subprovider=tuple[1]
+            subreceiver=tuple[2]
+            subforward=tuple[3]
+            subactive=tuple[4]
             subline = "node%s -> node%s\n" % (subreceiver, subprovider)
             subscriptions = "%s\n%s\n" % (subscriptions, subline)
 
         maindotcode = """
 digraph G {
-  quit [label =\"Quit\", URL=\"quit\"]
-  mainscreen [label=\"Main Screen", URL=\"mainscreen\"]
+ subgraph Menus {
+  rank = same;
+  node [shape=record];
+  quit [label =\"Quit\", URL=\"quit\", style=filled, fillcolor=red]
+  mainscreen [label=\"Main Screen", URL=\"mainscreen\", style=filled, fillcolor=lightblue]
+ }
+ subgraph Metadata {
+  rank = same;
+  node [shape=Mrecord];
+  %s
+ }
+ subgraph Nodes {
   %s
   %s
+ }
 }
-""" % (nodes, subscriptions)
+""" % (metadata, nodes, subscriptions)
 
         return maindotcode
         
@@ -111,11 +124,18 @@ digraph G {
         a=nodeid
         nodedot = """
 digraph G {
+ subgraph Menus {
+  rank = same;
+  node [shape=record];
   quit [label =\"Quit\", URL=\"quit\"]
   mainscreen [label=\"Main Screen", URL=\"mainscreen\"]
+ }
+ subgraph NodeInfo {
   nodeinfo [label=\"Node %s\"]
+ }
 }
 """ % (nodeid)
+
         return nodedot
 
 
