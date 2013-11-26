@@ -32,17 +32,16 @@ PGPORT = string.atoi(getenv('PGPORT', "7099"))
 PGUSER= getenv('PGUSER', 'postgres')
 PGDATABASE = getenv('PGDATABASE', 'slonyregress1')
 PGCLUSTER = getenv('PGCLUSTER', 'slony_regress1')
-
+INITIALDBSOURCE="dbname=%s host=%s user=%s port=%d" % (PGDATABASE, PGHOST, PGUSER, PGPORT)
+db=psycopg2.connect(INITIALDBSOURCE)
+mcur=db.cursor()
 
 class MyDotWindow(xdot.DotWindow):
     def mainnodescreen (self):
-        INITIALDBSOURCE="dbname=%s host=%s user=%s port=%d" % (PGDATABASE, PGHOST, PGUSER, PGPORT)
-        db=psycopg2.connect(INITIALDBSOURCE)
-        cur=db.cursor()
         qnodes = "select no_id, no_active, no_comment, no_failed from \"_%s\".sl_node;" % (PGCLUSTER)
         nodes=""
-        cur.execute(qnodes)
-        for tuple in cur:
+        mcur.execute(qnodes)
+        for tuple in mcur:
             node=tuple[0]
             active=tuple[1]
             comment=tuple[2]
@@ -54,8 +53,8 @@ class MyDotWindow(xdot.DotWindow):
                                                                                      
         subscriptions=""
         qsubs = "select sub_set, sub_provider, sub_receiver, sub_forward, sub_active from \"_%s\".sl_subscribe;" % (PGCLUSTER)
-        cur.execute(qsubs)
-        for tuple in cur:
+        mcur.execute(qsubs)
+        for tuple in mcur:
             subset=tuple[0]
             subprovider=tuple[1]
             subreceiver=tuple[2]
@@ -108,7 +107,7 @@ digraph G {
             #     buttons = gtk.BUTTONS_OK,
             #     message_format=("head to node %s screen" % (nodesearch.group(1))))
             # dialog.connect('response', lambda dialog, response: dialog.destroy())
-            self.widget.set_dotcode(self.nodedotcode(nodesearch.group(1)))
+            self.widget.set_dotcode(self.nodedotcode(int(nodesearch.group(1))))
             #dialog.run()
             #dotnodecode(widget, nodesearch.group(1))
         else:    
@@ -121,7 +120,40 @@ digraph G {
             return True
 
     def nodedotcode(self, nodeid):
-        a=nodeid
+        conninfoquery="select pa_conninfo from \"_%s\".sl_path where pa_server=%d limit 1;" % (PGCLUSTER,nodeid)
+        mcur.execute(conninfoquery)
+        nodeconninfo="none found"
+        for tuple in mcur:
+            nodeconninfo = tuple[0]
+        if nodeconninfo == "none found":
+            nodedata = """
+subgraph NodeInfo {
+  nodeinfo [label=\"|{ Node %d | No path found }|\"]
+}
+""" % (nodeid)
+        else:
+            # Now, search for some data about this node
+            # all sets that this node is involved with...
+            ndb=psycopg2.connect(nodeconninfo)
+            ncur=ndb.cursor()
+            qsets="select set_id, set_origin = %d as originp from \"_%s\".sl_set;" % (nodeid,PGCLUSTER)
+            ncur.execute(qsets)
+            sets="subgraph Sets {"
+            for tuple in ncur:
+                if tuple[1]:
+                    setnode=" set%d [shape=record, label=\"set %d ORIGIN\" URL=\"set%s\", style=filled, fillcolor=lightgreen] " % (tuple[0], tuple[0], tuple[0])
+                else:
+                    setnode=" set%d [shape=record, label=\"set %d\", URL=\"set%s\"] " % (tuple[0], tuple[0], tuple[0])
+                sets="%s\n%s" % (sets,setnode)
+            sets="%s\n%s" % (sets, "}")
+
+            nodedata = """
+subgraph NodeInfo {
+  nodeinfo [label=\"|{ Node %d }|\"]
+}
+%s
+""" % (nodeid, sets)
+            
         nodedot = """
 digraph G {
  subgraph Menus {
@@ -130,11 +162,9 @@ digraph G {
   quit [label =\"Quit\", URL=\"quit\"]
   mainscreen [label=\"Main Screen", URL=\"mainscreen\"]
  }
- subgraph NodeInfo {
-  nodeinfo [label=\"Node %s\"]
- }
+ %s
 }
-""" % (nodeid)
+""" % (nodedata)
 
         return nodedot
 
