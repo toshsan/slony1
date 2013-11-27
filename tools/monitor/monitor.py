@@ -35,10 +35,11 @@ PGCLUSTER = getenv('PGCLUSTER', 'slony_regress1')
 INITIALDBSOURCE="dbname=%s host=%s user=%s port=%d" % (PGDATABASE, PGHOST, PGUSER, PGPORT)
 db=psycopg2.connect(INITIALDBSOURCE)
 mcur=db.cursor()
+mcur.execute("set search_path to \"_%s\";" % (PGCLUSTER))
 
 class MyDotWindow(xdot.DotWindow):
     def mainnodescreen (self):
-        qnodes = "select no_id, no_active, no_comment, no_failed from \"_%s\".sl_node;" % (PGCLUSTER)
+        qnodes = "select no_id, no_active, no_comment, no_failed from sl_node;"
         nodes=""
         mcur.execute(qnodes)
         for tuple in mcur:
@@ -52,7 +53,7 @@ class MyDotWindow(xdot.DotWindow):
         metadata = "metadata [label=\"|{ |{ DB Info }| |{ DB| %s }| {| Host | %s |} |{ User | %s }| |{ Port | %s }| |{ Date | %s }| }| \"];\n" % (PGDATABASE,PGHOST, PGUSER, PGPORT, now)
                                                                                      
         subscriptions=""
-        qsubs = "select sub_set, sub_provider, sub_receiver, sub_forward, sub_active from \"_%s\".sl_subscribe;" % (PGCLUSTER)
+        qsubs = "select sub_set, sub_provider, sub_receiver, sub_forward, sub_active from sl_subscribe;"
         mcur.execute(qsubs)
         for tuple in mcur:
             subset=tuple[0]
@@ -91,25 +92,15 @@ digraph G {
 
     def on_url_clicked(self, widget, url, event):
         nodesearch = re.search("^node(\d+)$", url)
+        setsearch = re.search("^set(\d+)$", url)
         if (url == "quit"):
             exit()
         elif (url == "mainscreen"):
-            # dialog = gtk.MessageDialog(
-            #     parent = self, 
-            #     buttons = gtk.BUTTONS_OK,
-            #     message_format="head to main screen")
-            # dialog.connect('response', lambda dialog, response: dialog.destroy())
             self.widget.set_dotcode(self.mainnodescreen())
-            #dialog.run()
         elif nodesearch:
-            # dialog = gtk.MessageDialog(
-            #     parent = self, 
-            #     buttons = gtk.BUTTONS_OK,
-            #     message_format=("head to node %s screen" % (nodesearch.group(1))))
-            # dialog.connect('response', lambda dialog, response: dialog.destroy())
             self.widget.set_dotcode(self.nodedotcode(int(nodesearch.group(1))))
-            #dialog.run()
-            #dotnodecode(widget, nodesearch.group(1))
+        elif setsearch:
+            self.widget.set_dotcode(self.setdotcode(int(setsearch.group(1))))
         else:    
             dialog = gtk.MessageDialog(
                 parent = self, 
@@ -120,7 +111,7 @@ digraph G {
             return True
 
     def nodedotcode(self, nodeid):
-        conninfoquery="select pa_conninfo from \"_%s\".sl_path where pa_server=%d limit 1;" % (PGCLUSTER,nodeid)
+        conninfoquery="select pa_conninfo from sl_path where pa_server=%d limit 1;" % (nodeid)
         mcur.execute(conninfoquery)
         nodeconninfo="none found"
         for tuple in mcur:
@@ -136,7 +127,8 @@ subgraph NodeInfo {
             # all sets that this node is involved with...
             ndb=psycopg2.connect(nodeconninfo)
             ncur=ndb.cursor()
-            qsets="select set_id, set_origin = %d as originp from \"_%s\".sl_set;" % (nodeid,PGCLUSTER)
+            ncur.execute("set search_path to \"_%s\";" % (PGCLUSTER))
+            qsets="select set_id, set_origin = %d as originp from sl_set;" % (nodeid)
             ncur.execute(qsets)
             sets="subgraph Sets {"
             for tuple in ncur:
@@ -149,23 +141,107 @@ subgraph NodeInfo {
 
             nodedata = """
 subgraph NodeInfo {
-  nodeinfo [label=\"|{ Node %d }|\"]
+  nodeinfo [label=\"Node %d\", URL=\"node%d\"]
 }
 %s
-""" % (nodeid, sets)
+""" % (nodeid, nodeid, sets)
+            
+            qthreads="select co_actor, co_node, co_activity, co_starttime, co_event, co_eventtype from sl_components order by co_actor;"
+            ncur.execute(qthreads)
+            threads="<tr> <td> Actor </td><td> Node </td> <td> Activity </td> <td>Start Time</td> <td> Event </td> <td> Event Type </td> </tr>"
+            for tuple in ncur:
+                threadentry = "<tr><td> %s </td><td> %s </td><td> %s </td><td> %s </td><td> %s </td><td> %s </td></tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[4], tuple[5])
+                threads="%s %s" % (threads, threadentry)
+
+            threadgraph="""
+subgraph ThreadInfo {
+   threadsnode [label=<<table> %s </table>>, shape=record];
+}
+""" % (threads)
             
         nodedot = """
 digraph G {
  subgraph Menus {
   rank = same;
   node [shape=record];
-  quit [label =\"Quit\", URL=\"quit\"]
-  mainscreen [label=\"Main Screen", URL=\"mainscreen\"]
+  quit [label =\"Quit\", URL=\"quit\", style=filled, fillcolor=red]
+  mainscreen [label=\"Main Screen", URL=\"mainscreen\", style=filled, fillcolor=lightblue]
+ }
+ %s
+ %s
+}
+""" % (threadgraph, nodedata)
+        return nodedot
+    def setdotcode(self, setid):
+        # connect to origin node
+        conninfoquery="select pa_conninfo from sl_path, sl_set where set_id = %d and pa_server=set_origin limit 1;" % (setid)
+        mcur.execute(conninfoquery)
+        nodeconninfo="none found"
+        for tuple in mcur:
+            nodeconninfo = tuple[0]
+        if nodeconninfo == "none found":
+            nodedata = """
+subgraph SetInfo {
+  nodeinfo [label=\"|{ Set %d | No path found }|\"]
+}
+""" % (setid)
+        else:
+            # Now, search for some data about this set
+            # all sets that this node is involved with...
+            ndb=psycopg2.connect(nodeconninfo)
+            ncur=ndb.cursor()
+            ncur.execute("set search_path to \"_%s\";" % (PGCLUSTER))
+            qset="select now(), ev_seqno, (select count(*) from sl_table where tab_set = ev_origin) from sl_event where ev_origin = %d order by ev_seqno desc limit 1;" % (setid)
+            ncur.execute(qset)
+            for tuple in ncur:
+                setinfo=" set%d [label=\"|{ Set %d | As at %s | Latest event %s | # of tables: %s }|\", URL=\"set%d\"]" % (setid, setid, tuple[0], tuple[1], tuple[2], setid)
+            qnodes="select sub_receiver, sub_forward, sub_active, 'f' as originp from sl_subscribe where sub_set = %d union select set_origin, 't', 't', 't' from sl_set where set_id = %d;" % (setid, setid)
+            ncur.execute(qnodes)
+            nodes="subgraph Nodes {"
+            for tuple in ncur:
+                lnodeid=tuple[0]
+                if tuple[1]:
+                    lforward=" style=filled, fillcolor=blue "
+                else:
+                    lforward=" style=filled, fillcolor=red "
+                if tuple[3]=='t':
+                    lforward=" style=filled, fillcolor=green "
+                else:
+                    lforward=lforward
+                if tuple[2]:
+                    lforward=lforward
+                else:
+                    lforward=" style=filled, fillcolor=red "
+                nodeline="node%s [label=\"node%s\" URL=\"node%s\", %s]" % (lnodeid, lnodeid, lnodeid, lforward)
+                nodes="%s\n%s\n" % (nodes, nodeline)
+            qsubscribers="select sub_provider, sub_receiver, sub_active, st_lag_num_events, st_lag_time from sl_subscribe, sl_status where sub_set = %d and st_received = sub_receiver;" % (setid)
+            ncur.execute(qsubscribers)
+            for ntuple in ncur:
+                lprovider=ntuple[0]
+                lreceiver=ntuple[1]
+                lactive=ntuple[2]
+                lagnum=ntuple[3]
+                lagtime=ntuple[4]
+                if ntuple[2]:
+                    estyle="solid"
+                else:
+                    estyle="dotted"
+                edgeline="node%s -> node%s [style=%s, label=\"event lag=(%s,%s)\"]" % (lreceiver, lprovider, estyle, lagnum, lagtime)
+                nodes="%s\n%s\n" % (nodes, edgeline)
+            nodes= "%s\n}\n" % (nodes)
+
+        nodedot = """
+digraph G {
+ subgraph Menus {
+  rank = same;
+  node [shape=record];
+  quit [label =\"Quit\", URL=\"quit\", style=filled, fillcolor=red]
+  %s
+  mainscreen [label=\"Main Screen", URL=\"mainscreen\", style=filled, fillcolor=lightblue]
  }
  %s
 }
-""" % (nodedata)
-
+""" % (setinfo, nodes)
         return nodedot
 
 
