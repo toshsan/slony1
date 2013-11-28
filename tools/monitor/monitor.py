@@ -148,7 +148,7 @@ subgraph NodeInfo {
             
             qthreads="select co_actor, co_node, co_activity, co_starttime, co_event, co_eventtype from sl_components order by co_actor;"
             ncur.execute(qthreads)
-            threads="<tr> <td> Actor </td><td> Node </td> <td> Activity </td> <td>Start Time</td> <td> Event </td> <td> Event Type </td> </tr>"
+            threads="<tr> <td> Actor </td><td> Node </td> <td> Activity </td> <td>Latest Event Started</td> <td> Event ID </td> <td> Event Type </td> </tr>"
             for tuple in ncur:
                 threadentry = "<tr><td> %s </td><td> %s </td><td> %s </td><td> %s </td><td> %s </td><td> %s </td></tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[4], tuple[5])
                 threads="%s %s" % (threads, threadentry)
@@ -159,11 +159,19 @@ subgraph ThreadInfo {
 }
 """ % (threads)
 
+            qconfig="select relname, relpages, reltuples from pg_class, pg_namespace n where relnamespace = n.oid and nspname = '_%s' and relkind = 'r' order by relpages desc;" % (PGCLUSTER)
+            ncur.execute(qconfig)
+            ctables="<tr> <td> Table </td> <td> # pages </td> <td> # tuples </td> </tr>"
+            for tuple in ncur:
+                ctentry="<tr><td> %s </td><td> %s </td><td> %s </td></tr>" % (tuple[0], tuple[1], tuple[2])
+                ctables="%s %s" % (ctables, ctentry)
+            tablegraph="tablesizes [label=<<table> %s </table>>, shape=record];" % (ctables)
+
             lnodes=""
             qnodes="select no_id from sl_node;"
             ncur.execute (qnodes)
             for tuple in ncur:
-                nline="lnode%s [label=\"node%s\"];" % (tuple[0], tuple[0])
+                nline="lnode%s [label=\"node%s\", URL=\"node%s\"];" % (tuple[0], tuple[0], tuple[0])
                 lnodes="%s\n%s" % (lnodes, nline)
             lpaths=""
             qlistens="select li_provider, li_receiver from sl_listen where li_origin=%d;" % (nodeid)
@@ -174,10 +182,11 @@ subgraph ThreadInfo {
 
             listengraph="""
 subgraph Listeners {
+label="Network showing how each node listens for events from node %d"
 %s
 %s
 }
-""" % (lnodes, lpaths)
+""" % (nodeid, lnodes, lpaths)
 
         nodedot = """
 digraph G {
@@ -190,8 +199,9 @@ digraph G {
  %s
  %s
  %s
+ %s
 }
-""" % (threadgraph, nodedata, listengraph)
+""" % (tablegraph, threadgraph, nodedata, listengraph)
         print nodedot
         return nodedot
     def setdotcode(self, setid):
@@ -220,14 +230,14 @@ subgraph SetInfo {
 
             qtables="select tab_id, quote_ident(tab_nspname) || '.' || quote_ident(tab_relname), tab_comment, relpages, reltuples from sl_table t1, pg_catalog.pg_class c where tab_set=%d and c.oid = tab_reloid order by tab_id;" % (setid)
             ncur.execute(qtables)
-            tables= "<tr><td><b>Table ID</b></td><td><b>Table Name</b></td><td><b>Description</b></td><td><b>Pages</b></td><td><b>Approx Tuples</b></td></tr>"
+            tables= "<tr><td>Table ID</td><td>Table Name</td><td>Description</td><td>Pages</td><td>Approx Tuples</td></tr>"
             for tuple in ncur:
                 tableline="<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[4])
                 tables = "%s %s" % (tables, tableline)
 
             qsequences="select seq_id, quote_ident(seq_nspname) || '.' || quote_ident(seq_relname), seq_comment from sl_sequence where seq_set=%d order by seq_id;" % (setid)
             ncur.execute(qsequences)
-            sequences = "<tr><td><b>Seq ID</b></td><td><b>Sequence Name</b></td><td><b>Description</b></td></tr>"
+            sequences = "<tr><td>Seq ID</td><td>Sequence Name</td><td>Description</td></tr>"
             for tuple in ncur:
                 sline="<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (tuple[0], tuple[1], tuple[2])
                 sequences = "%s %s" % (sequences, sline)
@@ -242,7 +252,10 @@ subgraph ObjectInfo {
 
             qnodes="select sub_receiver, sub_forward, sub_active, 'f' as originp from sl_subscribe where sub_set = %d union select set_origin, 't', 't', 't' from sl_set where set_id = %d;" % (setid, setid)
             ncur.execute(qnodes)
-            nodes="subgraph Nodes {"
+            nodes="""
+subgraph Subscription {
+label="Subscription information for set %d"
+""" % (setid)
             for tuple in ncur:
                 lnodeid=tuple[0]
                 if tuple[1]:
