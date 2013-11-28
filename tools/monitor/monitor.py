@@ -50,7 +50,7 @@ class MyDotWindow(xdot.DotWindow):
             nodeline = "node%s [ label= \"node%s %s\", URL=\"node%s\" ]\n" % (node, node, comment, node)
             nodes = "%s\n%s\n" % (nodes, nodeline)
         now=datetime.now()
-        metadata = "metadata [label=\"|{ |{ DB Info }| |{ DB| %s }| {| Host | %s |} |{ User | %s }| |{ Port | %s }| |{ Date | %s }| }| \"];\n" % (PGDATABASE,PGHOST, PGUSER, PGPORT, now)
+        metadata = "metadata [label=<<table><tr><td> DB Info</td> </tr><tr><td> DB </td> <td> %s </td> </tr> <tr><td> Host </td><td> %s </td></tr> <tr><td> User </td><td> %s </td></tr> <tr><td> Port </td><td> %s </td></tr> <tr><td> Date </td><td> %s </td></tr></table>> ];\n" % (PGDATABASE,PGHOST, PGUSER, PGPORT, now)
                                                                                      
         subscriptions=""
         qsubs = "select sub_set, sub_provider, sub_receiver, sub_forward, sub_active from sl_subscribe;"
@@ -128,14 +128,14 @@ subgraph NodeInfo {
             ndb=psycopg2.connect(nodeconninfo)
             ncur=ndb.cursor()
             ncur.execute("set search_path to \"_%s\";" % (PGCLUSTER))
-            qsets="select set_id, set_origin = %d as originp from sl_set;" % (nodeid)
+            qsets="select set_id, set_origin, set_origin=%d from sl_set;" % (nodeid)
             ncur.execute(qsets)
             sets="subgraph Sets {"
             for tuple in ncur:
-                if tuple[1]:
-                    setnode=" set%d [shape=record, label=\"set %d ORIGIN\" URL=\"set%s\", style=filled, fillcolor=lightgreen] " % (tuple[0], tuple[0], tuple[0])
+                if tuple[2]:
+                    setnode=" set%d [shape=record, label=\"set %d ORIGIN\" URL=\"set%s\", style=filled, fillcolor=green] " % (tuple[0], tuple[0], tuple[0])
                 else:
-                    setnode=" set%d [shape=record, label=\"set %d\", URL=\"set%s\"] " % (tuple[0], tuple[0], tuple[0])
+                    setnode=" set%d [shape=record, label=\"set %d origin=node%s\", URL=\"set%s\"] " % (tuple[0], tuple[1], tuple[0], tuple[0])
                 sets="%s\n%s" % (sets,setnode)
             sets="%s\n%s" % (sets, "}")
 
@@ -158,7 +158,27 @@ subgraph ThreadInfo {
    threadsnode [label=<<table> %s </table>>, shape=record];
 }
 """ % (threads)
-            
+
+            lnodes=""
+            qnodes="select no_id from sl_node;"
+            ncur.execute (qnodes)
+            for tuple in ncur:
+                nline="lnode%s [label=\"node%s\"];" % (tuple[0], tuple[0])
+                lnodes="%s\n%s" % (lnodes, nline)
+            lpaths=""
+            qlistens="select li_provider, li_receiver from sl_listen where li_origin=%d;" % (nodeid)
+            ncur.execute (qlistens)
+            for tuple in ncur:
+                lline="lnode%s -> lnode%s;" % (tuple[1], tuple[0])
+                lpaths="%s\n%s" % (lpaths, lline)
+
+            listengraph="""
+subgraph Listeners {
+%s
+%s
+}
+""" % (lnodes, lpaths)
+
         nodedot = """
 digraph G {
  subgraph Menus {
@@ -169,8 +189,10 @@ digraph G {
  }
  %s
  %s
+ %s
 }
-""" % (threadgraph, nodedata)
+""" % (threadgraph, nodedata, listengraph)
+        print nodedot
         return nodedot
     def setdotcode(self, setid):
         # connect to origin node
@@ -195,6 +217,29 @@ subgraph SetInfo {
             ncur.execute(qset)
             for tuple in ncur:
                 setinfo=" set%d [label=\"|{ Set %d | As at %s | Latest event %s | # of tables: %s }|\", URL=\"set%d\"]" % (setid, setid, tuple[0], tuple[1], tuple[2], setid)
+
+            qtables="select tab_id, quote_ident(tab_nspname) || '.' || quote_ident(tab_relname), tab_comment, relpages, reltuples from sl_table t1, pg_catalog.pg_class c where tab_set=%d and c.oid = tab_reloid order by tab_id;" % (setid)
+            ncur.execute(qtables)
+            tables= "<tr><td><b>Table ID</b></td><td><b>Table Name</b></td><td><b>Description</b></td><td><b>Pages</b></td><td><b>Approx Tuples</b></td></tr>"
+            for tuple in ncur:
+                tableline="<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[4])
+                tables = "%s %s" % (tables, tableline)
+
+            qsequences="select seq_id, quote_ident(seq_nspname) || '.' || quote_ident(seq_relname), seq_comment from sl_sequence where seq_set=%d order by seq_id;" % (setid)
+            ncur.execute(qsequences)
+            sequences = "<tr><td><b>Seq ID</b></td><td><b>Sequence Name</b></td><td><b>Description</b></td></tr>"
+            for tuple in ncur:
+                sline="<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (tuple[0], tuple[1], tuple[2])
+                sequences = "%s %s" % (sequences, sline)
+
+            objectgraph="""
+subgraph ObjectInfo {
+    tablesnode [label=<<table> %s </table>>, shape=record];
+    sequencesnode [label=<<table> %s </table>>, shape=record];
+}
+""" % (tables, sequences)
+            
+
             qnodes="select sub_receiver, sub_forward, sub_active, 'f' as originp from sl_subscribe where sub_set = %d union select set_origin, 't', 't', 't' from sl_set where set_id = %d;" % (setid, setid)
             ncur.execute(qnodes)
             nodes="subgraph Nodes {"
@@ -237,11 +282,13 @@ digraph G {
   node [shape=record];
   quit [label =\"Quit\", URL=\"quit\", style=filled, fillcolor=red]
   %s
+  %s
   mainscreen [label=\"Main Screen", URL=\"mainscreen\", style=filled, fillcolor=lightblue]
  }
  %s
 }
-""" % (setinfo, nodes)
+""" % (setinfo, objectgraph, nodes)
+        print nodedot
         return nodedot
 
 
