@@ -61,23 +61,30 @@ class MyDotWindow(xdot.DotWindow):
             subreceiver=tuple[2]
             subforward=tuple[3]
             subactive=tuple[4]
-            subline = "node%s -> node%s\n" % (subreceiver, subprovider)
+            if subforward:
+                style="filled"
+            else:
+                style="dotted"
+            if subactive:
+                color="green"
+            else:
+                color="red"
+            subline = "node%s -> node%s [style=%s, color=%s, label=\"set%s\", URL=\"set%s\"]\n" % (subreceiver, subprovider, style, color, subset, subset)
             subscriptions = "%s\n%s\n" % (subscriptions, subline)
-
         maindotcode = """
 digraph G {
- subgraph Menus {
-  rank = same;
-  node [shape=record];
-  quit [label =\"Quit\", URL=\"quit\", style=filled, fillcolor=red]
-  mainscreen [label=\"Main Screen", URL=\"mainscreen\", style=filled, fillcolor=lightblue]
+ subgraph cluster_Menus {
+  node [shape=record, style=filled];
+  quit [label =\"Quit\", URL=\"quit\", fillcolor=red]
+  mainscreen [label=\"Main Screen", URL=\"mainscreen\", fillcolor=lightblue]
  }
- subgraph Metadata {
-  rank = same;
+ subgraph cluster_Metadata {
+  label=\"DB Connection Info used to access cluster\";
   node [shape=Mrecord];
   %s
  }
- subgraph Nodes {
+ subgraph cluster_Nodes {
+  label=\"Cluster subscription overview\";
   %s
   %s
  }
@@ -118,7 +125,7 @@ digraph G {
             nodeconninfo = tuple[0]
         if nodeconninfo == "none found":
             nodedata = """
-subgraph NodeInfo {
+subgraph cluster_NodeInfo {
   nodeinfo [label=\"|{ Node %d | No path found }|\"]
 }
 """ % (nodeid)
@@ -130,7 +137,9 @@ subgraph NodeInfo {
             ncur.execute("set search_path to \"_%s\";" % (PGCLUSTER))
             qsets="select set_id, set_origin, set_origin=%d from sl_set;" % (nodeid)
             ncur.execute(qsets)
-            sets="subgraph Sets {"
+            sets="""subgraph cluster_Sets {
+ label="Sets in which node %d participates"
+""" % (nodeid)
             for tuple in ncur:
                 if tuple[2]:
                     setnode=" set%d [shape=record, label=\"set %d ORIGIN\" URL=\"set%s\", style=filled, fillcolor=green] " % (tuple[0], tuple[0], tuple[0])
@@ -140,7 +149,7 @@ subgraph NodeInfo {
             sets="%s\n%s" % (sets, "}")
 
             nodedata = """
-subgraph NodeInfo {
+subgraph cluster_NodeInfo {
   nodeinfo [label=\"Node %d\", URL=\"node%d\"]
 }
 %s
@@ -154,7 +163,7 @@ subgraph NodeInfo {
                 threads="%s %s" % (threads, threadentry)
 
             threadgraph="""
-subgraph ThreadInfo {
+subgraph cluster_ThreadInfo {
    threadsnode [label=<<table> %s </table>>, shape=record];
 }
 """ % (threads)
@@ -181,8 +190,8 @@ subgraph ThreadInfo {
                 lpaths="%s\n%s" % (lpaths, lline)
 
             listengraph="""
-subgraph Listeners {
-label="Network showing how each node listens for events from node %d"
+subgraph cluster_Listeners {
+label="Listen Network - how each node listens for events from node %d";
 %s
 %s
 }
@@ -190,7 +199,7 @@ label="Network showing how each node listens for events from node %d"
 
         nodedot = """
 digraph G {
- subgraph Menus {
+ subgraph cluster_Menus {
   rank = same;
   node [shape=record];
   quit [label =\"Quit\", URL=\"quit\", style=filled, fillcolor=red]
@@ -213,7 +222,7 @@ digraph G {
             nodeconninfo = tuple[0]
         if nodeconninfo == "none found":
             nodedata = """
-subgraph SetInfo {
+subgraph cluster_SetInfo {
   nodeinfo [label=\"|{ Set %d | No path found }|\"]
 }
 """ % (setid)
@@ -243,18 +252,19 @@ subgraph SetInfo {
                 sequences = "%s %s" % (sequences, sline)
 
             objectgraph="""
-subgraph ObjectInfo {
+subgraph cluster_ObjectInfo {
+    label="Objects in set %d";
     tablesnode [label=<<table> %s </table>>, shape=record];
     sequencesnode [label=<<table> %s </table>>, shape=record];
 }
-""" % (tables, sequences)
+""" % (setid, tables, sequences)
             
 
             qnodes="select sub_receiver, sub_forward, sub_active, 'f' as originp from sl_subscribe where sub_set = %d union select set_origin, 't', 't', 't' from sl_set where set_id = %d;" % (setid, setid)
             ncur.execute(qnodes)
             nodes="""
-subgraph Subscription {
-label="Subscription information for set %d"
+subgraph cluster_Subscription {
+label="Subscription information for set %d";
 """ % (setid)
             for tuple in ncur:
                 lnodeid=tuple[0]
@@ -290,8 +300,7 @@ label="Subscription information for set %d"
 
         nodedot = """
 digraph G {
- subgraph Menus {
-  rank = same;
+ subgraph cluster_Menus {
   node [shape=record];
   quit [label =\"Quit\", URL=\"quit\", style=filled, fillcolor=red]
   %s
