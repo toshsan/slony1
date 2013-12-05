@@ -155,21 +155,17 @@ subgraph cluster_NodeInfo {
 %s
 """ % (nodeid, nodeid, sets)
 
-            qnodes="select distinct con_origin from sl_confirm union select distinct con_received from sl_confirm;"
             qconfirms="select con_origin, con_received, min(con_seqno), max(con_seqno), count(*) from sl_confirm group by con_origin, con_received order by con_origin, con_received;"
             confirms = """
 subgraph cluster_Confirms {
  label="Confirmations by node per node %d"
 """ % (nodeid)
-            ncur.execute(qnodes)
-            for tuple in ncur:
-                nodeline = "   node%s [label=\"node%s\", URL=\"node%s\" ];\n" % (tuple[0],tuple[0],tuple[0])
-                confirms = "%s\n%s" % (confirms, nodeline)
             ncur.execute(qconfirms)
+            tconfirms = "<tr> <td> Origin </td> <td> Receiver </td>  <td> Min Event </td> <td> Max Event </td> <td> # of Confirms </td> </tr>"
             for tuple in ncur:
-                edgeline = "   node%s -> node%s [style=solid, label=\"events(%d,%d) count=%d\"];" % (tuple[1], tuple[0], tuple[2], tuple[3], tuple[4])
-                confirms = "%s\n%s" % (confirms, edgeline)
-            confirms="%s\n}\n" % (confirms)
+                tcline = "<tr> <td> %s </td> <td> %s </td>  <td> %s </td> <td> %s </td> <td> %s </td> </tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[4])
+                tconfirms = "%s %s" % (tconfirms, tcline)
+            confirms="%s\n confirmsnode [label=<<table> %s </table>>, shape=record]; \n}\n" % (confirms, tconfirms)
 
             qthreads="select co_actor, co_node, co_activity, co_starttime, co_event, co_eventtype from sl_components order by co_actor;"
             ncur.execute(qthreads)
@@ -180,9 +176,10 @@ subgraph cluster_Confirms {
 
             threadgraph="""
 subgraph cluster_ThreadInfo {
+   label="Threads active on node %d";
    threadsnode [label=<<table> %s </table>>, shape=record];
 }
-""" % (threads)
+""" % (nodeid, threads)
 
             qconfig="select relname, relpages, reltuples from pg_class, pg_namespace n where relnamespace = n.oid and nspname = '_%s' and relkind = 'r' order by relpages desc;" % (PGCLUSTER)
             ncur.execute(qconfig)
@@ -190,7 +187,12 @@ subgraph cluster_ThreadInfo {
             for tuple in ncur:
                 ctentry="<tr><td> %s </td><td> %s </td><td> %s </td></tr>" % (tuple[0], tuple[1], tuple[2])
                 ctables="%s %s" % (ctables, ctentry)
-            tablegraph="tablesizes [label=<<table> %s </table>>, shape=record];" % (ctables)
+            tablegraph="""
+subgraph cluster_TablesInfo {
+   label="Tables replicated";
+   tablesizes [label=<<table> %s </table>>, shape=record];
+}
+""" % (ctables)
 
             lnodes=""
             qnodes="select no_id from sl_node;"
