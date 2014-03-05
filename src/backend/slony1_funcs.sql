@@ -2862,7 +2862,14 @@ begin
 		raise exception 'Slony-I: setAddTable_int(): % is not a regular table',
 				p_fqname;
 	end if;
-
+    if v_tab_nspname in ('information_schema', 'pg_catalog') then
+		raise exception 'Slony-I: setAddTable_int(): % is in an internal catalog and cannot be replicated',
+				p_fqname;
+	end if;
+    if v_tab_nspname ~ '^_.*' and v_tab_relname ~ '^sl_.*' then
+		raise exception 'Slony-I: setAddTable_int(): % appears to be a replication configuration table and cannot be replicated',
+				p_fqname;
+	end if;
 	if not exists (select indexrelid
 			from "pg_catalog".pg_index PGX, "pg_catalog".pg_class PGC
 			where PGX.indrelid = v_tab_reloid
@@ -3157,7 +3164,16 @@ begin
 				p_fqname;
 	end if;
 
-        select 1 into v_sync_row from @NAMESPACE@.sl_sequence where seq_id = p_seq_id;
+    if v_seq_nspname in ('information_schema', 'pg_catalog') then
+		raise exception 'Slony-I: setAddSequence_int(): % is in an internal catalog and cannot be replicated',
+				p_fqname;
+	end if;
+    if v_seq_nspname ~ '^_.*' and v_seq_relname ~ '^sl_.*' then
+		raise exception 'Slony-I: setAddSequence_int(): % appears to be a replication configuration sequence and cannot be replicated',
+				p_fqname;
+	end if;
+
+    select 1 into v_sync_row from @NAMESPACE@.sl_sequence where seq_id = p_seq_id;
 	if not found then
                v_relkind := 'o';   -- all is OK
         else

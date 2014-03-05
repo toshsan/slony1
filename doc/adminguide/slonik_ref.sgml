@@ -1511,6 +1511,10 @@ STORE PATH ( SERVER = 1, CLIENT = 2,
 	     the request <emphasis>will
 	     fail.</emphasis></para></listitem>
 
+	   <listitem><para> If the table is found to be in some internal
+	   &postgres; schemas or appears to be a &slony1; replication
+	   configuration table, the request will fail.</para></listitem>
+
 	  </itemizedlist></para>
 	</warning>
 
@@ -1727,6 +1731,11 @@ SET ADD TABLE (
 
 
     </programlisting>
+
+	<para> If the sequence is found to be in some internal &postgres;
+	schemas or appears to be a &slony1; replication configuration
+	table, the request will fail.</para>
+
    </refsect1>
    <refsect1> <title> Locking Behaviour </title>	
 
