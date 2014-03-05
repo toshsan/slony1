@@ -158,7 +158,7 @@ subgraph cluster_NodeInfo {
             qconfirms="select con_origin, con_received, min(con_seqno), max(con_seqno), count(*) from sl_confirm group by con_origin, con_received order by con_origin, con_received;"
             confirms = """
 subgraph cluster_Confirms {
- label="Confirmations by node per node %d"
+ label="Confirmations (sl_confirm) by node per node %d"
 """ % (nodeid)
             ncur.execute(qconfirms)
             tconfirms = "<tr> <td> Origin </td> <td> Receiver </td>  <td> Min Event </td> <td> Max Event </td> <td> # of Confirms </td> </tr>"
@@ -166,6 +166,26 @@ subgraph cluster_Confirms {
                 tcline = "<tr> <td> %s </td> <td> %s </td>  <td> %s </td> <td> %s </td> <td> %s </td> </tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[4])
                 tconfirms = "%s %s" % (tconfirms, tcline)
             confirms="%s\n confirmsnode [label=<<table> %s </table>>, shape=record]; \n}\n" % (confirms, tconfirms)
+
+            qthreads="select co_actor, co_node, co_activity, co_starttime, co_event, co_eventtype from sl_components order by co_actor;"
+            ncur.execute(qthreads)
+            threads="<tr> <td> Actor </td><td> Node </td> <td> Activity </td> <td>Latest Event Started</td> <td> Event ID </td> <td> Event Type </td> </tr>"
+            for tuple in ncur:
+                threadentry = "<tr><td> %s </td><td> %s </td><td> %s </td><td> %s </td><td> %s </td><td> %s </td></tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[4], tuple[5])
+                threads="%s %s" % (threads, threadentry)
+
+            qevents="select ev_origin, ev_type, min(ev_seqno) as min_seq, max(ev_seqno) as max_seq, min(now()-ev_timestamp) as min_age, max(now()-ev_timestamp) as max_age, count(*) from sl_event group by ev_origin, ev_type order by ev_origin, ev_type;"
+            events = """
+subgraph cluster_Events {
+ label="Events (sl_event) by node/type per node %d"
+""" % (nodeid)
+            ncur.execute(qevents)
+            # Note that min_age is not being used
+            tevents = "<tr> <td> Origin </td> <td> Type </td>  <td> Min Event </td> <td> Max Event </td> <td> Max Age </td> <td> # of Events </td> </tr>"
+            for tuple in ncur:
+                teline = "<tr> <td> %s </td> <td> %s </td>  <td> %s </td> <td> %s </td> <td> %s </td> <td> %s </td> </tr>" % (tuple[0], tuple[1], tuple[2], tuple[3], tuple[5], tuple[6])
+                tevents = "%s %s" % (tevents, teline)
+            events="%s\n confirmsnode [label=<<table> %s </table>>, shape=record]; \n}\n" % (confirms, tevents)
 
             qthreads="select co_actor, co_node, co_activity, co_starttime, co_event, co_eventtype from sl_components order by co_actor;"
             ncur.execute(qthreads)
@@ -228,8 +248,9 @@ digraph G {
  %s
  %s
  %s
+ %s
 }
-""" % (tablegraph, confirms, threadgraph, nodedata, listengraph)
+""" % (tablegraph, events, confirms, threadgraph, nodedata, listengraph)
         print nodedot
         return nodedot
     def setdotcode(self, setid):
