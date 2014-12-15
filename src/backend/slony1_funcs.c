@@ -228,7 +228,6 @@ versionFunc(createEvent)(PG_FUNCTION_ARGS)
 	char	   *ev_type_c;
 	Datum		argv[9];
 	char		nulls[10];
-	size_t		buf_size;
 	int			rc;
 	int			i;
 	int64		retval;
@@ -251,8 +250,6 @@ versionFunc(createEvent)(PG_FUNCTION_ARGS)
 	 */
 	cs = getClusterStatus(PG_GETARG_NAME(0),
 						  PLAN_INSERT_EVENT);
-
-	buf_size = 8192;
 
 	/*
 	 * Do the following only once per transaction.
