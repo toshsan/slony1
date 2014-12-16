@@ -1,5 +1,9 @@
 #+OPTIONS: ^:{}
 * Slony-I Release Notes
+
+** 2.1.6 (?)
+- Bug 352 :: Fixes to accomodate PostgresSQL HEAD ("9.5")
+
 ** 2.1.5
 - Bug 315 :: Fixes to the compile time include directories
 - Remove HAVE_POSIX_SIGNALS from config.h 
