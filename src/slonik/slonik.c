@@ -5061,6 +5061,17 @@ slonik_ddl_script(SlonikStmt_ddl_script * stmt)
 			return -1;
 		}
 		PQclear(res1);
+		
+		slon_mkquery(&query, "%s", "RESET ALL;");
+		res1 = PQexec(adminfo1->dbconn, dstring_data(&query));
+		if (PQresultStatus(res1) != PGRES_COMMAND_OK) {
+			fprintf(stderr, "%s [%s] - %s",
+					PQresStatus(PQresultStatus(res1)),
+					dstring_data(&query), PQresultErrorMessage(res1));
+			PQclear(res1);
+			dstring_free(&query);
+			return -1;
+		}				
 	}
 
 	/*

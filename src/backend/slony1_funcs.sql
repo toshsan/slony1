@@ -3787,6 +3787,7 @@ create or replace function @NAMESPACE@.ddlScript_complete_int ()
 returns int4
 as $$
 begin
+	execute 'RESET ALL;';
 	perform @NAMESPACE@.updateRelname();
 	perform @NAMESPACE@.repair_log_triggers(true);
 	return 0;
