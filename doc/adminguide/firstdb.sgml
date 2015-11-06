@@ -107,7 +107,7 @@ primary key. </para>
 <para> The following SQL requests will establish a proper primary key on this table: </para>
 
 <programlisting>
-psql -U $PGBENCHUSER -h $HOST1 -d $MASTERDBNAME -c "begin; alter table
+psql -U $PGBENCHUSER -h $MASTERHOST -d $MASTERDBNAME -c "begin; alter table
 history add column id serial; update history set id =
 nextval('history_id_seq'); alter table history add primary key(id);
 commit"
